@@ -1,122 +1,38 @@
 {
-  "permissions": {
-    "deny": [
-      // === 破壊的なファイル操作 ===
-      "Bash(rm -rf *)",
-      "Bash(rm -rf /)",
-      "Bash(rm -rf ~/*)",
-      "Bash(rm -rf ./*)",
-      "Bash(sudo rm *)",
-      
-      // === sudoを使った危険な操作全般 ===
-      "Bash(sudo rm *)",
-      "Bash(sudo dd *)",
-      "Bash(sudo mkfs*)",
-      "Bash(sudo fdisk *)",
-      
-      // === システム重要ファイルの削除 ===
-      "Bash(rm */etc/*)",
-      "Bash(rm */boot/*)",
-      "Bash(rm */var/*)",
-      "Bash(rm */usr/*)",
-      
-      // === データベース全削除 ===
-      "Bash(*DROP DATABASE*)",
-      "Bash(*DROP SCHEMA*)",
-      "Bash(mysql *drop database*)",
-      "Bash(psql *DROP DATABASE*)",
-      
-      // === Gitの危険な操作 ===
-      "Bash(git push --force*)",
-      "Bash(git push -f*)",
-      "Bash(git reset --hard HEAD~*)",
-      "Bash(git clean -fdx)",
-      
-      // === 本番環境への直接デプロイ ===
-      "Bash(*deploy*production*)",
-      "Bash(*push*production*)",
-      "Bash(*publish*production*)",
-      
-      // === センシティブファイルの読み書き ===
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Read(./secrets/*)",
-      "Read(*/.aws/credentials)",
-      "Read(*/.ssh/id_rsa)",
-      "Write(./.env*)",
-      "Write(./secrets/*)",
-      "Write(./production.config.*)",
-      
-      // === システムファイルへの書き込み ===
-      "Write(/etc/*)",
-      "Write(/boot/*)",
-      "Write(/var/*)"
-    ],
-    
-    "ask": [
-      // === 確認が必要な操作 ===
-      "Bash(npm install*)",
-      "Bash(composer install*)",
-      "Bash(pip install*)",
-      "Bash(git push*)",
-      "Bash(docker*)",
-      "Bash(chmod*)",
-      "Bash(chown*)",
-      "Write(package.json)",
-      "Write(composer.json)",
-      "Write(*.sql)"
-    ],
-    
-    "allow": [
-      // === 安全な読み取り操作 ===
-      "Read(**)",
-      
-      // === 安全なgit操作 ===
-      "Bash(git status*)",
-      "Bash(git log*)",
-      "Bash(git diff*)",
-      "Bash(git add*)",
-      "Bash(git commit*)",
-      "Bash(git pull*)",
-      "Bash(git fetch*)",
-      "Bash(git branch*)",
-      "Bash(git checkout*)",
-      
-      // === 開発用の安全なコマンド ===
-      "Bash(ls*)",
-      "Bash(cat*)",
-      "Bash(grep*)",
-      "Bash(find*)",
-      "Bash(echo*)",
-      "Bash(pwd*)",
-      "Bash(which*)",
-      
-      // === テスト・リント系 ===
-      "Bash(npm run test*)",
-      "Bash(npm run lint*)",
-      "Bash(composer test*)",
-      "Bash(phpstan*)",
-      "Bash(phpcs*)",
-      
-      // === ソースコードへの書き込み ===
-      "Write(./src/**)",
-      "Write(./tests/**)",
-      "Write(./docs/**)",
-      "Write(*.md)"
-    ]
-  },
-  
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash(rm *)",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo 'WARNING: rm command detected. Review carefully.'"
-          }
+    "permissions": {
+        "deny": [
+            "Bash (sudo: *)",
+            "Bash (rm -rf:*)",
+            "Read (.env*)",
+            "Read (id_rsa)",
+            "Read (id_ed25519)",
+            "Read (**/*key*)",
+            "Read (**/- ssh/**)",
+            "Write(.env*)",
+            "Write（**/secrets/**）",
+            "Write（**/-ssh/**）",
+            "Bash（npmuninstall：*）",
+            "Bash（npmremove：*＊）",
+            "Bash (psql:*)",
+            "Bash (mysql:*)",
+            "Bash (mongod:*)",
+            "NotebookEdit"
+        ],
+        "ask": [
+            "Bash (rm: *) ",
+            "Bash (curl:*)",
+            "Bash（chmod+X：＊）",
+            "Bash（gitcommit：*）",
+            "Bash（gitbranch：*）",
+            "Bash（gitmerge：*）",
+            "Bash（gitstash：*）",
+            "Bash（gitfetch：*）",
+            "Bash（gitpush：*）",
+            "Bash(git pull:*)",
+            "Bash（gitreset：*）",
+            "Bash（gitrebase：*）",
+            "Bash(git tag:*)",
+            "Bash（npmpublish：*）"
         ]
-      }
-    ]
-  }
+    }
 }
