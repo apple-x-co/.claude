@@ -34,5 +34,10 @@
             "Bash(git tag:*)",
             "Bash（npmpublish：*）"
         ]
+    },
+    "model": "sonnet",
+    "statusLine": {
+        "type": "command",
+        "command": "/bin/bash /Users/<USER_NAME>/.claude/statusline-command.sh"
     }
 }
