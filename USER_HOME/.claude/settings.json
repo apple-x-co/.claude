@@ -38,6 +38,6 @@
     "model": "sonnet",
     "statusLine": {
         "type": "command",
-        "command": "/bin/bash /Users/<USER_NAME>/.claude/statusline-command.sh"
+        "command": "/bin/bash ~/.claude/statusline-command.sh"
     }
 }
