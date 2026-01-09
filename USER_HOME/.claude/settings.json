@@ -16,7 +16,11 @@
             "Bash (psql:*)",
             "Bash (mysql:*)",
             "Bash (mongod:*)",
-            "NotebookEdit"
+            "NotebookEdit",
+            "Read(./node_modules/**)",
+            "Read(./vendor/**)",
+            "Read(./target/**)",
+            "Read(./.git/**)"
         ],
         "ask": [
             "Bash (rm: *) ",
@@ -35,7 +39,7 @@
             "Bash（npmpublish：*）"
         ]
     },
-    "model": "sonnet",
+    "model": "opusplan",
     "statusLine": {
         "type": "command",
         "command": "/bin/bash ~/.claude/statusline-command.sh"
