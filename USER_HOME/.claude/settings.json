@@ -41,6 +41,7 @@
     },
     "language": "日本語",
     "model": "opusplan",
+    "plansDirectory": "./",
     "statusLine": {
         "type": "command",
         "command": "/bin/bash ~/.claude/statusline-command.sh"
