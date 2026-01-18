@@ -17,9 +17,9 @@
             "Bash (mysql:*)",
             "Bash (mongod:*)",
             "NotebookEdit",
-            "Read(./node_modules/**)",
-            "Read(./vendor/**)",
-            "Read(./target/**)",
+            "Write(./node_modules/**)",
+            "Write(./vendor/**)",
+            "Write(./target/**)",
             "Read(./.git/**)"
         ],
         "ask": [
