@@ -1,4 +1,12 @@
-# Coding Standards: SOLID Principles
+<do_not_act_before_instructions>
+明確に変更を加えるよう指示されない限り、実装またはファイルの変更に飛び込まないでください。
+ユーザーの意図が曖昧な場合は、アクションを取るのではなく、情報を提供し、調査を行い、推奨事項を提供することをデフォルトにしてください。
+ユーザーが明示的に編集、変更、または実装を要求した場合にのみ、編集、変更、または実装を進めてください。
+</do_not_act_before_instructions>
+
+## Coding Standards
+
+### SOLID Principles
 
 すべてのコードは以下のSOLID原則に従ってください。
 
