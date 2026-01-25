@@ -39,7 +39,7 @@
             "Bash（npmpublish：*）"
         ]
     },
-    "language": "日本語",
+    "language": "Japanese",
     "model": "opusplan",
     "plansDirectory": "./",
     "statusLine": {
