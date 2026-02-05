@@ -506,6 +506,7 @@ $ git log origin/develop..HEAD --oneline
 - ❌ 間違い: `Module/FeatureA.php`（パスが不完全）
 - ❌ 間違い: `FeatureA.php`（パスが不完全）
 - ❌ 間違い: `src/Module/FeatureA.php:1`（行番号が付いている）
+- ❌ 間違い: \`src/Module/FeatureA.php\`（バッククォーテーションの前にバックスラッシュが付いている）
 
 ### その他の制約
 
