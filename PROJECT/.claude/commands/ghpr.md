@@ -66,12 +66,14 @@ description: Create a GitHub Pull Request using gh CLI
 
 ### ステップ3: 既存 PR のチェック
 
-1. **同じブランチからの PR が既に存在するか確認**:
+1. **同じブランチからの Open または Draft の PR が既に存在するか確認**:
    ```bash
-   gh pr list --head $(git branch --show-current) --base <選択されたベースブランチ> --json number,title,state,url
+   gh pr list --head $(git branch --show-current) --base <選択されたベースブランチ> --state all --json number,title,state,url
    ```
 
-   出力例:
+   **重要**: `--state all` で全てのPRを取得し、Claude が `state` フィールドをチェックして **`OPEN` または `DRAFT` のPRのみ**を抽出します。`MERGED` や `CLOSED` のPRは除外してください。
+
+   出力例（Open の場合）:
    ```json
    [
      {
@@ -83,7 +85,32 @@ description: Create a GitHub Pull Request using gh CLI
    ]
    ```
 
-   空配列 `[]` の場合は既存 PR なし。
+   出力例（Draft の場合）:
+   ```json
+   [
+     {
+       "number": 124,
+       "title": "新機能を追加",
+       "state": "DRAFT",
+       "url": "https://github.com/owner/repo/pull/124"
+     }
+   ]
+   ```
+
+   出力例（マージ済みは除外）:
+   ```json
+   [
+     {
+       "number": 125,
+       "title": "バグ修正",
+       "state": "MERGED",
+       "url": "https://github.com/owner/repo/pull/125"
+     }
+   ]
+   ```
+   → この場合、`state` が `MERGED` なので無視します。結果として既存 PR なしと判定。
+
+   **フィルタリング後に空配列になった場合は既存 PR なし。**
 
 2. **既存 PR が見つかった場合の処理**:
 
@@ -103,6 +130,10 @@ description: Create a GitHub Pull Request using gh CLI
           "description": "既存の PR のメタデータを更新します。"
         },
         {
+          "label": "既存の PR を無視して新規 PR を作成する",
+          "description": "既存の PR はそのままにして、新しい PR を別途作成します（通常は推奨されません）。"
+        },
+        {
           "label": "既存の PR をブラウザで確認する",
           "description": "既存の PR を開いて内容を確認します。"
         },
@@ -116,31 +147,58 @@ description: Create a GitHub Pull Request using gh CLI
 3. **選択に応じた処理**:
 
    **a) 既存の PR を更新する（推奨）**:
+
+   まず、PR の現在の状態を確認:
    ```bash
-   # 最新のコミットをリモートに push
-   git push origin $(git branch --show-current)
-   
-   # PR の URL を表示
-   gh pr view <PR番号> --json url -q .url
+   gh pr view <PR番号> --json state -q .state
    ```
-    - 「既存の PR に最新のコミットが反映されました」と報告
-    - PR の URL を表示
+
+    - 結果が `MERGED` または `CLOSED` の場合:
+        - 「この PR は既にマージ/クローズされています。新規 PR の作成に切り替えますか？」と確認
+        - Yes → ステップ4（新規 PR 作成フロー）に進む
+        - No → 処理を終了
+
+    - 結果が `OPEN` または `DRAFT` の場合:
+      ```bash
+      # 最新のコミットをリモートに push
+      git push origin $(git branch --show-current)
+      
+      # PR の URL を表示
+      gh pr view <PR番号> --json url -q .url
+      ```
+        - 「既存の PR に最新のコミットが反映されました」と報告
+        - PR の URL を表示
 
    **b) タイトル・本文を編集する**:
-    - ステップ4（コミット差分の分析）に進む
-    - ステップ5（PR 候補生成）で候補を作成
-    - 選択された内容で既存 PR を更新:
-      ```bash
-      gh pr edit <PR番号> --title "<新しいタイトル>" --body "<新しい本文>"
-      ```
 
-   **c) ブラウザで確認**:
+   まず、PR の現在の状態を確認:
+   ```bash
+   gh pr view <PR番号> --json state -q .state
+   ```
+
+    - 結果が `MERGED` または `CLOSED` の場合:
+        - 「この PR は既にマージ/クローズされています。マージ済み/クローズ済みの PR は編集できません」と通知して終了
+
+    - 結果が `OPEN` または `DRAFT` の場合:
+        - ステップ4（コミット差分の分析）に進む
+        - ステップ5（PR 候補生成）で候補を作成
+        - 選択された内容で既存 PR を更新:
+          ```bash
+          gh pr edit <PR番号> --title "<新しいタイトル>" --body "<新しい本文>"
+          ```
+
+   **c) 既存の PR を無視して新規 PR を作成する**:
+    - ステップ4（コミット差分の分析）に進む
+    - 新規 PR 作成フローを実行
+    - 注意: 同じブランチから複数の PR が存在することになります
+
+   **d) ブラウザで確認**:
    ```bash
    gh pr view <PR番号> --web
    ```
     - 処理を終了
 
-   **d) キャンセル**:
+   **e) キャンセル**:
     - 「処理をキャンセルしました」と報告して終了
 
 4. **既存 PR が見つからなかった場合**:
@@ -602,11 +660,16 @@ PR 作成後、以下の追加操作をユーザーに提案:
 - **デフォルトで Draft PR を作成**（`--draft` フラグを使用）
 - **既存の PR との重複をチェック**（ステップ3で実施）:
     - ブランチ選択後すぐにチェックを実行
-    - 既に PR が存在する場合は以下の選択肢を提示:
+    - **`--state all` で全PRを取得し、`OPEN` または `DRAFT` のPRのみを抽出**（`MERGED` や `CLOSED` は除外）
+    - 既に Open/Draft の PR が存在する場合は以下の選択肢を提示:
         1. 既存の PR を更新（コミットを追加）
         2. 既存の PR のタイトル・本文を編集
-        3. 既存の PR をブラウザで確認
-        4. キャンセル
+        3. 既存の PR を無視して新規 PR を作成
+        4. 既存の PR をブラウザで確認
+        5. キャンセル
+    - **PR 操作前に必ず状態を再確認**:
+        - `gh pr view <PR番号> --json state -q .state` で状態を取得
+        - `MERGED` または `CLOSED` の場合は操作を中止し、適切なメッセージを表示
 
 ### 🚨 PR 内容生成の厳格なルール 🚨
 
