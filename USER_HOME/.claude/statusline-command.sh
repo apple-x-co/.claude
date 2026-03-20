@@ -26,5 +26,27 @@ if [ "$usage" != "null" ]; then
     context_info="${pct}% context"
 fi
 
+# Calculate rate limit info (5-hour window)
+rate_info=""
+rate_used=$(echo "$input" | jq '.rate_limits.five_hour.used_percentage // empty')
+rate_resets_at=$(echo "$input" | jq '.rate_limits.five_hour.resets_at // empty')
+if [ -n "$rate_used" ] && [ -n "$rate_resets_at" ]; then
+    now=$(date +%s)
+    remaining_sec=$((rate_resets_at - now))
+    if [ "$remaining_sec" -le 0 ]; then
+        reset_str="まもなくリセット"
+    else
+        remaining_min=$((remaining_sec / 60))
+        hours=$((remaining_min / 60))
+        mins=$((remaining_min % 60))
+        if [ "$hours" -gt 0 ]; then
+            reset_str="${hours}h${mins}m"
+        else
+            reset_str="${mins}m"
+        fi
+    fi
+    rate_info=" | ⚡ ${rate_used}% (↺${reset_str})"
+fi
+
 # Output the status line
-printf "📁 %s | 🌿 %s | 🤖 %s | 📏 %s" "${cwd##*/}" "$git_branch" "$model" "$context_info"
+printf "📁 %s | 🌿 %s | 🤖 %s | 📏 %s%s" "${cwd##*/}" "$git_branch" "$model" "$context_info" "$rate_info"
