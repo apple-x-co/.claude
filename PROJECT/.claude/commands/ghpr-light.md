@@ -31,9 +31,17 @@ description: Create a GitHub Pull Request (lightweight version)
 ### ステップ2: マージ先ブランチの選択
 
 1. **利用可能なブランチ一覧を取得**:
+
+   まず生データを取得:
    ```bash
-   git branch -r | grep -v HEAD | sed 's|origin/||' | grep -v "^$(git branch --show-current)$" | sort -u
+   git branch -r
    ```
+
+   次に Claude がこのデータを処理して以下を行う:
+   - `origin/` プレフィックスを削除
+   - `HEAD` を除外
+   - 現在のブランチを除外
+   - 重複を削除・ソート
 
 2. **候補ブランチの優先順位付け**:
    - `develop`, `main`, `master` を優先的に表示
@@ -49,8 +57,10 @@ description: Create a GitHub Pull Request (lightweight version)
 ### ステップ3: 既存 PR のチェック
 
 1. **既存の Open/Draft PR を確認**:
+
+   `<現在のブランチ名>` にはステップ1で取得したブランチ名をリテラル文字列として代入する（shell substitution 不可）。
    ```bash
-   gh pr list --head $(git branch --show-current) --base <選択されたベースブランチ> --state all --json number,title,state,url
+   gh pr list --head <現在のブランチ名> --base <選択されたベースブランチ> --state all --json number,title,state,url
    ```
 
    **重要**: `state` が `OPEN` または `DRAFT` の PR のみを抽出。`MERGED` や `CLOSED` は除外。
@@ -69,12 +79,14 @@ description: Create a GitHub Pull Request (lightweight version)
 3. **選択に応じた処理**:
 
    **a) 既存の PR を更新する**:
+
+   `<現在のブランチ名>` にはステップ1で取得したブランチ名をリテラル文字列として代入する（shell substitution 不可）。
    ```bash
    # 状態確認
    gh pr view <PR番号> --json state -q .state
    
    # OPEN/DRAFT の場合のみ push
-   git push origin $(git branch --show-current)
+   git push origin <現在のブランチ名>
    gh pr view <PR番号> --json url -q .url
    ```
 
@@ -104,12 +116,11 @@ git diff origin/<base-branch>..HEAD --name-status
 # コミット数
 git rev-list --count origin/<base-branch>..HEAD
 
-# 変更ファイル数
-git diff origin/<base-branch>..HEAD --name-only | wc -l
-
-# 追加・削除行数
+# 追加・削除行数（変更ファイル数も含まれる）
 git diff origin/<base-branch>..HEAD --shortstat
 ```
+
+変更ファイル数は `--shortstat` の出力（例: `3 files changed`）から読み取る。
 
 **差分が0コミットの場合**: 「ベースブランチとの差分がありません」と通知して終了
 
