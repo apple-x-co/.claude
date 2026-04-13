@@ -41,6 +41,7 @@
     },
     "language": "Japanese",
     "model": "opusplan",
+    "effortLevel": "high",
     "plansDirectory": "./",
     "statusLine": {
         "type": "command",
