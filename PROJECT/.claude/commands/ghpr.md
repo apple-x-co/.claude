@@ -1,6 +1,7 @@
 ---
 allowed-tools: Bash(gh:*), Bash(git log:*), Bash(git branch:*), Bash(git diff:*), Bash(git rev-parse:*), Bash(git config:*), Bash(git status:*), Bash(git fetch:*), Bash(git push:*), Bash(sed:*), Bash(grep:*), Bash(wc:*), Bash(sort:*), Bash(head:*), AskUserQuestion
 description: Create a GitHub Pull Request using gh CLI
+model: haiku
 ---
 
 ## Context
