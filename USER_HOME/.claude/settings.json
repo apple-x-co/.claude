@@ -1,28 +1,28 @@
 {
     "$schema": "https://json.schemastore.org/claude-code-settings.json",
-    "enabledPlugins" : {
-        "frontend-design@claude-plugins-official" : false,
-        "security-guidance@claude-plugins-official" : true
+    "enabledPlugins": {
+        "frontend-design@claude-plugins-official": false,
+        "security-guidance@claude-plugins-official": true
     },
-    "env" : {
-        "CLAUDE_CODE_NO_FLICKER" : "1"
+    "env": {
+        "CLAUDE_CODE_NO_FLICKER": "1"
     },
-    "extraKnownMarketplaces" : {
+    "extraKnownMarketplaces": {
     },
     "permissions": {
         "deny": [
-            "Bash(sudo: *)",
+            "Bash(sudo:*)",
             "Bash(rm -rf:*)",
             "Read(.env*)",
             "Read(id_rsa)",
             "Read(id_ed25519)",
-            "Read(**/*key*)",
-            "Read(**/- ssh/**)",
+            "Read(**/*.key)",
+            "Read(**/.ssh/**)",
             "Write(.env*)",
             "Write(**/secrets/**)",
-            "Write(**/-ssh/**)",
-            "Bash(npmuninstall：*)",
-            "Bash(npmremove：*＊)",
+            "Write(**/.ssh/**)",
+            "Bash(npm uninstall:*)",
+            "Bash(npm remove:*)",
             "Bash(psql:*)",
             "Bash(mysql:*)",
             "Bash(mongod:*)",
@@ -33,20 +33,17 @@
             "Read(./.git/**)"
         ],
         "ask": [
-            "Bash(rm: *)",
+            "Bash(rm:*)",
             "Bash(curl:*)",
-            "Bash(chmod+X：＊)",
-            "Bash(gitcommit：*)",
-            "Bash(gitbranch：*)",
-            "Bash(gitmerge：*)",
-            "Bash(gitstash：*)",
-            "Bash(gitfetch：*)",
-            "Bash(gitpush：*)",
+            "Bash(git merge:*)",
+            "Bash(git stash:*)",
+            "Bash(git fetch:*)",
+            "Bash(git push:*)",
             "Bash(git pull:*)",
-            "Bash(gitreset：*)",
-            "Bash(gitrebase：*)",
+            "Bash(git reset:*)",
+            "Bash(git rebase:*)",
             "Bash(git tag:*)",
-            "Bash(npmpublish：*)"
+            "Bash(npm publish:*)"
         ]
     },
     "language": "Japanese",
