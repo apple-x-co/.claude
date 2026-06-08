@@ -1,22 +1,31 @@
 {
     "$schema": "https://json.schemastore.org/claude-code-settings.json",
+    "enabledPlugins" : {
+        "frontend-design@claude-plugins-official" : false,
+        "security-guidance@claude-plugins-official" : true
+    },
+    "env" : {
+        "CLAUDE_CODE_NO_FLICKER" : "1"
+    },
+    "extraKnownMarketplaces" : {
+    },
     "permissions": {
         "deny": [
-            "Bash (sudo: *)",
-            "Bash (rm -rf:*)",
-            "Read (.env*)",
-            "Read (id_rsa)",
-            "Read (id_ed25519)",
-            "Read (**/*key*)",
-            "Read (**/- ssh/**)",
+            "Bash(sudo: *)",
+            "Bash(rm -rf:*)",
+            "Read(.env*)",
+            "Read(id_rsa)",
+            "Read(id_ed25519)",
+            "Read(**/*key*)",
+            "Read(**/- ssh/**)",
             "Write(.env*)",
-            "Write（**/secrets/**）",
-            "Write（**/-ssh/**）",
-            "Bash（npmuninstall：*）",
-            "Bash（npmremove：*＊）",
-            "Bash (psql:*)",
-            "Bash (mysql:*)",
-            "Bash (mongod:*)",
+            "Write(**/secrets/**)",
+            "Write(**/-ssh/**)",
+            "Bash(npmuninstall：*)",
+            "Bash(npmremove：*＊)",
+            "Bash(psql:*)",
+            "Bash(mysql:*)",
+            "Bash(mongod:*)",
             "NotebookEdit",
             "Write(./node_modules/**)",
             "Write(./vendor/**)",
@@ -24,20 +33,20 @@
             "Read(./.git/**)"
         ],
         "ask": [
-            "Bash (rm: *) ",
-            "Bash (curl:*)",
-            "Bash（chmod+X：＊）",
-            "Bash（gitcommit：*）",
-            "Bash（gitbranch：*）",
-            "Bash（gitmerge：*）",
-            "Bash（gitstash：*）",
-            "Bash（gitfetch：*）",
-            "Bash（gitpush：*）",
+            "Bash(rm: *)",
+            "Bash(curl:*)",
+            "Bash(chmod+X：＊)",
+            "Bash(gitcommit：*)",
+            "Bash(gitbranch：*)",
+            "Bash(gitmerge：*)",
+            "Bash(gitstash：*)",
+            "Bash(gitfetch：*)",
+            "Bash(gitpush：*)",
             "Bash(git pull:*)",
-            "Bash（gitreset：*）",
-            "Bash（gitrebase：*）",
+            "Bash(gitreset：*)",
+            "Bash(gitrebase：*)",
             "Bash(git tag:*)",
-            "Bash（npmpublish：*）"
+            "Bash(npmpublish：*)"
         ]
     },
     "language": "Japanese",
