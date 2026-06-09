@@ -37,7 +37,6 @@
             "Bash(curl:*)",
             "Bash(git merge:*)",
             "Bash(git stash:*)",
-            "Bash(git fetch:*)",
             "Bash(git push:*)",
             "Bash(git pull:*)",
             "Bash(git reset:*)",
