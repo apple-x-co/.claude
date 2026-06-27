@@ -4,6 +4,8 @@ description: Create a git commit
 model: haiku
 ---
 
+> version: 1.0.0
+
 ## Context
 
 - Current git status: !`git status`

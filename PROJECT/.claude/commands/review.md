@@ -3,6 +3,8 @@ allowed-tools: Bash(git diff:*), Bash(git status:*), Bash(git branch:*)
 description: Review your changes
 ---
 
+> version: 1.0.0
+
 ## Context
 
 - Changed files: !`git diff --name-only HEAD`

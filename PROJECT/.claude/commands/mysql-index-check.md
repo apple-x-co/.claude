@@ -3,6 +3,8 @@ allowed-tools: AskUserQuestion, Bash(find:*), Bash(cat:*), Bash(ls:*), Bash(grep
 description: MySQLのスキーマ定義とSQLクエリを分析し、本当に不足しているインデックスを検出する
 ---
 
+> version: 1.0.0
+
 ## Your task
 
 MySQLのスキーマ定義ファイルとSQLクエリファイルのアクセスパターンを照合し、**本当に不足しているインデックスだけ**を正確に特定します。

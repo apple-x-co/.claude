@@ -4,6 +4,8 @@ description: Create a GitHub Pull Request (lightweight version)
 model: haiku
 ---
 
+> version: 1.0.0
+
 ## Context
 
 - Current branch: !`git branch --show-current`

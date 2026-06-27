@@ -4,6 +4,8 @@ description: Create a GitHub Pull Request using gh CLI
 model: haiku
 ---
 
+> version: 1.0.0
+
 ## Context
 
 - Current branch: !`git branch --show-current`

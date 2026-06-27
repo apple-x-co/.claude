@@ -5,6 +5,8 @@ allowed-tools: Bash(coderabbit:*)
 argument-hint: [--plain|--prompt-only] [--type uncommitted|committed] [--base branch]
 ---
 
+> version: 1.0.0
+
 # CodeRabbit CLI - AI Code Review
 
 ローカルにインストールされた CodeRabbit CLI ツールを使用して、AIによる包括的なコードレビューを実施します。
