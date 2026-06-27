@@ -5,7 +5,8 @@
         "security-guidance@claude-plugins-official": true
     },
     "env": {
-        "CLAUDE_CODE_NO_FLICKER": "1"
+        "CLAUDE_CODE_NO_FLICKER": "1",
+        "CLAUDE_CODE_DISABLE_MOUSE_CLICKS": "1"
     },
     "extraKnownMarketplaces": {
     },
