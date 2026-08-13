@@ -1,19 +1,17 @@
 ---
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git log:*), Bash(git branch:*), Bash(git diff:*), AskUserQuestion
+allowed-tools: Bash(git status:*), Bash(git commit:*), Bash(git log:*), Bash(git branch:*), Bash(git diff:*), AskUserQuestion
 description: Create a git commit
 model: haiku
 ---
 
-> version: 1.0.0
+> version: 1.1.0
 
 ## Context
 
-- Current git status: !`git status`
-- Staged changes: !`git diff --cached`
-- Unstaged changes: !`git diff`
 - Current branch: !`git branch --show-current`
+- Git status: !`git status --short`
+- Staged changes: !`git diff --cached --patch-with-stat -U1`
 - Recent commits: !`git log --oneline -10`
-- Branch name for a commit message: !`git branch --show-current`
 
 ## Your task
 
@@ -21,20 +19,16 @@ model: haiku
 
 ### ステップ1: ステージング状態の確認と分析
 
-`git status` の出力からステージング状態を判定し、以下の3パターンに応じて処理を分岐する：
+`Git status`（`git status --short`）の1列目（index列）が空白でない行の有無でステージング状態を判定する：
 
-**パターンA: ステージされたファイルが0件、かつ未ステージのファイルが存在する**
+**ステージ済みが0件**
 - 「ステージされたファイルがありません。`git add` でファイルをステージしてからコミットしてください。」と通知して処理を終了する
 
-**パターンB: ステージされたファイルが存在し、かつ未ステージのファイルも残っている**
-- ステージされたファイル（`git diff --cached`）のみを分析対象とする
-- コミット対象はステージされたファイルのみ（追加の `git add` は行わない）
+**ステージ済みが1件以上**
+- `Staged changes`（`git diff --cached`）のみを分析対象とする
+- 未ステージの変更・未追跡ファイルはコミット対象に含めない（追加の `git add` は行わない）
 
-**パターンC: 未ステージのファイルがなく、全ての変更ファイルがステージされている（または未ステージの変更のみ存在する）**
-- `git diff HEAD` の出力全体を分析対象とする
-- コミット前に `git add` で全変更をステージングする
-
-各パターンで以下を把握：
+分析対象から以下を把握：
 - 変更の種類（新機能/バグ修正/リファクタリング/ドキュメント/その他）
 - 影響を受けるファイルとその役割
 - 変更の主要な目的
@@ -45,31 +39,22 @@ model: haiku
 
 1. **詳細版（推奨）**: 変更内容の具体的な詳細を含む
    - 形式: `<type>: <主要な変更> <詳細や補足情報> <branch>`
-   - 例:
-     ```text
-     feat: ユーザー認証機能を追加し JWT トークンベースの認証を実装 issues/#123
-     ```
+   - 例: `feat: ユーザー認証機能を追加し JWT トークンベースの認証を実装 issues/#123`
 
 2. **標準版**: 変更の要点を簡潔に表現
    - 形式: `<type>: <変更の要約> <branch>`
-   - 例:
-   ```text
-   feat: ユーザー認証機能を追加 issues/#123
-   ```
+   - 例: `feat: ユーザー認証機能を追加 issues/#123`
 
 3. **簡潔版**: 最小限の情報で変更を表現
    - 形式: `<type>: <変更内容> <branch>`
-   - 例:
-   ```text
-   feat: 認証機能追加 issues/#123
-   ```
+   - 例: `feat: 認証機能追加 issues/#123`
 
 **フォーマット規則**（全候補に適用）:
 - Conventional Commits 形式を使用（`feat`/`fix`/`docs`/`refactor`/`chore`/`test`/`style`/`perf` 等）
 - プレフィックス（`<type>:`）は英語
 - メッセージ本文は日本語
 - 1行の長さは72文字以内を推奨（ブランチ名を含む）
-- 行末に必ずブランチ名（`main`/`develop`/`issues/#123`/`feat/#123`/`hotfix/#123` 等）を含める（フォーマット: `<branch>` の値をそのまま使用）
+- 行末に必ずブランチ名（`main`/`develop`/`issues/#123`/`feat/#123`/`hotfix/#123` 等、`Current branch` の値をそのまま使用）を含める
 - ファイル名やコマンドはバッククォーテーション `` ` `` で囲む
 - 英語と日本語の間に半角スペースを入れる
 - 1行で完結（本文や追加行は作成しない）
@@ -86,13 +71,9 @@ model: haiku
 
 ### ステップ4: コミット実行
 
-1. ステージング状態に応じて以下の通り処理する：
-   - **パターンA（ステージ0件・未ステージあり）**: 「ステージされたファイルがありません。`git add` でファイルをステージしてからコミットしてください。」と通知して終了（コミットしない）
-   - **パターンB（ステージあり・未ステージも残存）**: 追加の `git add` は行わずステージ済みのファイルのみでコミット
-   - **パターンC（全変更がステージ済み、または未ステージのみ）**: `git add -A` で全てステージングしてからコミット
-2. 選択されたメッセージで `git commit -m "<選択されたメッセージ>"` を実行
-3. コミット失敗時はエラー内容をユーザーに報告
-4. `git status` でコミット成功を確認し、結果を日本語で報告
+1. `git add` は行わず、ステージ済みのファイルのみで `git commit -m "<選択されたメッセージ>"` を実行する
+2. コミット成功時は `git commit` 自身の出力（ブランチ名・短縮SHA・変更ファイル数など）から結果を読み取り、日本語で報告する（確認用の追加コマンドは実行しない）
+3. コミット失敗時はエラー内容をそのまま日本語で報告する
 
 ## 重要な制約
 
@@ -101,3 +82,5 @@ model: haiku
 - **Claude co-authorship フッターは追加しない**
 - **コミットメッセージは必ず1行のみ**（本文や Co-Authored-By は不要）
 - **詳細版を1番目（推奨）に配置**する
+- **コミット対象はステージ済みのファイルのみ**（`git add` は実行しない）
+- **報告は `git commit` の出力から行い、確認用の追加コマンドは実行しない**
