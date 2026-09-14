@@ -54,5 +54,6 @@
         "type": "command",
         "command": "/bin/bash ~/.claude/statusline-command.sh"
     },
-    "outputStyle": "Explanatory"
+    "outputStyle": "Explanatory",
+    "remoteControlAtStartup": false
 }
