@@ -1,6 +1,6 @@
 ---
-allowed-tools: Bash(gh:*), Bash(git log:*), Bash(git diff:*), Bash(git fetch:*), Bash(echo:*), AskUserQuestion
-description: Create a GitHub Pull Request between two remote branches (default: develop → main)
+allowed-tools: Bash(gh:*), Bash(git log:*), Bash(git branch:*), Bash(git diff:*), Bash(git fetch:*), Bash(echo:*), AskUserQuestion
+description: Create a GitHub Pull Request between two remote branches (default: current branch → develop, develop → main)
 model: haiku
 ---
 
@@ -8,13 +8,14 @@ model: haiku
 
 ## Context
 
+- Current branch: !`git branch --show-current`
 - Remote branches: !`git branch -r`
 
 **重要**: Context のブランチ情報はそのまま利用してよい（再取得しない）。ただし PR の**内容**の生成には、ステップ3で取得する差分のみを使用すること。
 
 ## Your task
 
-GitHub のリモートブランチ同士（head → base）の Pull Request を作成します。ローカルの作業ブランチや push 状態には依存しません。基本は `develop` → `main` のリリース PR を想定しています。
+GitHub のリモートブランチ同士（head → base）の Pull Request を作成します。`Current branch` は head / base の推奨を決めるためだけに使い、PR の内容や差分は常にリモートの状態（`origin/<base>...origin/<head>`）から生成します。push 前のローカルコミットは対象外です。
 
 ### ステップ1: ブランチ候補の整理
 
@@ -27,18 +28,22 @@ Context の `Remote branches`（`git branch -r` の出力）を処理対象と�
 
 ### ステップ2: head / base の選択
 
+**推奨ブランチの決定**（質問の前に決める）:
+- **推奨 head**: `Current branch` がステップ1の候補に含まれ、かつ `develop` / `main` / `master` 以外ならそのブランチ。それ以外は `develop`（なければ `main` / `master`）
+- **推奨 base**: 推奨 head が `develop` なら `main`（なければ `master`）。それ以外は `develop`（なければ `main` / `master`）
+
 `AskUserQuestion` で **2つの質問を1回で**提示する:
 
 1. 質問1: "PR の head（マージ元）ブランチを選択してください"
     - `header`: "Head branch"
     - `multiSelect`: `false`
-    - `options`: `develop` を先頭（推奨）にし、続けてその他のブランチ（最大4件）
+    - `options`: 推奨 head を先頭（推奨）にし、続けてその他のブランチ（最大4件）
 2. 質問2: "PR の base（マージ先）ブランチを選択してください"
     - `header`: "Base branch"
     - `multiSelect`: `false`
-    - `options`: `main`（なければ `master`）を先頭（推奨）にし、続けてその他のブランチ（最大4件）
+    - `options`: 推奨 base を先頭（推奨）にし、続けてその他のブランチ（最大4件）
 
-`develop` や `main` が存在しない場合は、存在するブランチのみで候補を構成する。
+推奨に該当するブランチが存在しない場合は、存在するブランチのみで候補を構成する。
 
 選択後、head と base が同一の場合は「head と base に同じブランチは指定できません」と通知して終了。
 
@@ -176,4 +181,5 @@ head は既にリモートにあるため、新しいコミットは既存 PR �
 
 - **リリース PR（develop → main）**: コミット数が多くなりがちなので、カテゴリ単位で要約する
 - **Issue とのリンク**: 本文に `Closes #123` を手動で追加可能
-- **ローカルブランチから PR を作る場合**: `/ghpr` または `/ghpr-light` を使用
+- **push が前提**: 未 push のコミットは差分に含まれないので、先に `git push` しておく
+- **詳細な PR 本文が必要な場合**: 影響範囲テーブル付きの `/ghpr` を使用
