@@ -20,6 +20,7 @@ GitHub のリモートブランチ同士（head → base）の Pull Request を�
 ### ステップ1: ブランチ候補の整理
 
 Context の `Remote branches`（`git branch -r` の出力）を処理対象とする（再取得しない）:
+- `origin/` で始まるブランチのみを対象にし、他のリモートのブランチは除外（以降のコマンドは `origin` 固定のため）
 - `origin/` プレフィックスを削除
 - `HEAD` を含む行（`origin/HEAD -> origin/main` など）を除外
 - 重複を削除・ソート
@@ -37,11 +38,11 @@ Context の `Remote branches`（`git branch -r` の出力）を処理対象と�
 1. 質問1: "PR の head（マージ元）ブランチを選択してください"
     - `header`: "Head branch"
     - `multiSelect`: `false`
-    - `options`: 推奨 head を先頭（推奨）にし、続けてその他のブランチ（最大4件）
+    - `options`: 推奨 head を先頭（推奨）にし、続けてその他のブランチ（推奨を含めて合計4件まで）
 2. 質問2: "PR の base（マージ先）ブランチを選択してください"
     - `header`: "Base branch"
     - `multiSelect`: `false`
-    - `options`: 推奨 base を先頭（推奨）にし、続けてその他のブランチ（最大4件）
+    - `options`: 推奨 base を先頭（推奨）にし、続けてその他のブランチ（推奨を含めて合計4件まで）
 
 推奨に該当するブランチが存在しない場合は、存在するブランチのみで候補を構成する。
 
@@ -52,20 +53,22 @@ Context の `Remote branches`（`git branch -r` の出力）を処理対象と�
 **🚨 最重要制約 🚨**:
 このステップでは、**以下のコマンドを実行して、その出力のみ**を使って PR 内容を生成します。**それ以外の情報源は一切使用禁止**です。
 
-`<head>` / `<base>` にはステップ2で確定した値をリテラル文字列として代入する（shell substitution 不可）。
+`<head>` / `<base>` にはステップ2で確定した値をリテラル文字列として代入する（shell substitution 不可）。ブランチ名には `$` や `` ` `` など、シェルが解釈する文字が含まれ得るため、**必ずシングルクォートで囲む**（値に `'` が含まれる場合は `'\''` に置換する）。
 
 ```bash
 echo "=== EXISTING_PR ==="
-gh pr list --head <head> --base <base> --state all --json number,title,state,url
+gh pr list --head '<head>' --base '<base>' --state all --json number,title,state,url
 echo "=== COMMITS ==="
-git fetch --no-tags --quiet origin <head> <base> && git log origin/<base>..origin/<head> --pretty=tformat:"### %h %s%n%b" --reverse
+git fetch --no-tags --quiet origin '+refs/heads/<head>:refs/remotes/origin/<head>' '+refs/heads/<base>:refs/remotes/origin/<base>' && git log 'origin/<base>..origin/<head>' --pretty=tformat:"### %h %s%n%b" --reverse
 echo "=== FILES ==="
-git diff origin/<base>...origin/<head> --name-status
+git diff 'origin/<base>...origin/<head>' --name-status
 echo "=== NUMSTAT ==="
-git diff origin/<base>...origin/<head> --numstat
+git diff 'origin/<base>...origin/<head>' --numstat
 echo "=== STAT ==="
-git diff origin/<base>...origin/<head> --shortstat
+git diff 'origin/<base>...origin/<head>' --shortstat
 ```
+
+- `git fetch` は refspec（`+refs/heads/<branch>:refs/remotes/origin/<branch>`）で追跡参照を明示的に更新する（`FETCH_HEAD` のみが更新されて古い `origin/<branch>` を参照するのを防ぐ）
 
 - `git diff` は三点（`...`）で、base との共通祖先から head までの変更のみを対象にする（PR の差分と一致させる）
 
@@ -221,20 +224,28 @@ head は既にリモートにあるため、新しいコミットは既存 PR �
         - 各 `label` には生成した PR タイトルを設定
         - 各 `description` には候補の特徴（「詳細版（推奨）」「標準版」「簡潔版」）と本文のプレビュー（最初の1-2行）を表示
 
+   **シェル展開の防止**（コミットメッセージ由来の内容がコマンドとして実行されないようにする）:
+    - ブランチ名・タイトルは**シングルクォート**で囲む（`'` は `'\''` に置換）
+    - 本文は引数に埋め込まず、**クォート付きヒアドキュメント**（`<<'PR_BODY_EOF'`）で標準入力から渡す（本文中に区切り文字の行が現れないようにする）
+
 2. **新規 PR の作成**（デフォルトで Draft PR）:
    ```bash
-   gh pr create --head <head> \
-                --base <base> \
-                --title "<選択されたタイトル>" \
-                --body "<選択された本文>" \
-                --draft
+   gh pr create --head '<head>' \
+                --base '<base>' \
+                --title '<選択されたタイトル>' \
+                --body-file - \
+                --draft <<'PR_BODY_EOF'
+   <選択された本文>
+   PR_BODY_EOF
    ```
 
 3. **既存 PR の更新**（ステップ3で「再生成」を選択した場合）:
    ```bash
    gh pr edit <PR番号> \
-              --title "<選択されたタイトル>" \
-              --body "<選択された本文>"
+              --title '<選択されたタイトル>' \
+              --body-file - <<'PR_BODY_EOF'
+   <選択された本文>
+   PR_BODY_EOF
    ```
 
 4. **成功時の確認**:
