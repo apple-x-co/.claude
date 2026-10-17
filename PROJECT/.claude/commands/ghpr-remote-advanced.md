@@ -55,11 +55,19 @@ Context の `Remote branches`（`git branch -r` の出力）を処理対象と�
 
 `<head>` / `<base>` にはステップ2で確定した値をリテラル文字列として代入する（shell substitution 不可）。ブランチ名には `$` や `` ` `` など、シェルが解釈する文字が含まれ得るため、**必ずシングルクォートで囲む**（値に `'` が含まれる場合は `'\''` に置換する）。
 
+まず、追跡参照を最新化する（**単独で実行**し、失敗した場合は後続のコマンドを実行せず、エラー内容を報告して終了する）:
+
+```bash
+git fetch --no-tags --quiet origin '+refs/heads/<head>:refs/remotes/origin/<head>' '+refs/heads/<base>:refs/remotes/origin/<base>'
+```
+
+fetch が成功した場合のみ、続けて以下を実行する:
+
 ```bash
 echo "=== EXISTING_PR ==="
 gh pr list --head '<head>' --base '<base>' --state all --json number,title,state,url
 echo "=== COMMITS ==="
-git fetch --no-tags --quiet origin '+refs/heads/<head>:refs/remotes/origin/<head>' '+refs/heads/<base>:refs/remotes/origin/<base>' && git log 'origin/<base>..origin/<head>' --pretty=tformat:"### %h %s%n%b" --reverse
+git log 'origin/<base>..origin/<head>' --pretty=tformat:"### %h %s%n%b" --reverse
 echo "=== FILES ==="
 git diff 'origin/<base>...origin/<head>' --name-status
 echo "=== NUMSTAT ==="
