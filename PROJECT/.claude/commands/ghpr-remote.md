@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh:*), Bash(git log:*), Bash(git branch:*), Bash(git diff:*), Bash(git fetch:*), Bash(echo:*), AskUserQuestion
+allowed-tools: Bash(gh:*), Bash(git log:*), Bash(git rev-list:*), Bash(git branch:*), Bash(git diff:*), Bash(git fetch:*), Bash(echo:*), AskUserQuestion
 description: Create a GitHub Pull Request between two remote branches (default: current branch → develop, develop → main)
 model: haiku
 ---
@@ -20,8 +20,9 @@ GitHub のリモートブランチ同士（head → base）の Pull Request を�
 ### ステップ1: ブランチ候補の整理
 
 Context の `Remote branches`（`git branch -r` の出力）を処理対象とする（再取得しない）:
+- 各行の先頭の空白を除いたうえで、`origin/` で始まるブランチのみを対象にし、他のリモートのブランチは除外（以降のコマンドは `origin` 固定のため）
 - `origin/` プレフィックスを削除
-- `HEAD` を含む行（`origin/HEAD -> origin/main` など）を除外
+- `origin/HEAD -> origin/main` のようなシンボリック参照の行（` -> ` を含む行）のみを除外
 - 重複を削除・ソート
 
 候補が2件未満の場合は「PR を作成できるリモートブランチが足りません」と通知して終了。
@@ -37,11 +38,11 @@ Context の `Remote branches`（`git branch -r` の出力）を処理対象と�
 1. 質問1: "PR の head（マージ元）ブランチを選択してください"
     - `header`: "Head branch"
     - `multiSelect`: `false`
-    - `options`: 推奨 head を先頭（推奨）にし、続けてその他のブランチ（最大4件）
+    - `options`: 推奨 head を先頭（推奨）にし、続けてその他のブランチ（推奨を含めて合計4件まで）
 2. 質問2: "PR の base（マージ先）ブランチを選択してください"
     - `header`: "Base branch"
     - `multiSelect`: `false`
-    - `options`: 推奨 base を先頭（推奨）にし、続けてその他のブランチ（最大4件）
+    - `options`: 推奨 base を先頭（推奨）にし、続けてその他のブランチ（推奨を含めて合計4件まで）
 
 推奨に該当するブランチが存在しない場合は、存在するブランチのみで候補を構成する。
 
@@ -51,25 +52,37 @@ Context の `Remote branches`（`git branch -r` の出力）を処理対象と�
 
 **🚨 重要制約**: 以下のコマンドの出力のみを使用して PR を生成します。
 
-`<head>` / `<base>` にはステップ2で確定した値をリテラル文字列として代入する（shell substitution 不可）。
+`<head>` / `<base>` にはステップ2で確定した値をリテラル文字列として代入する（shell substitution 不可）。ブランチ名には `$` や `` ` `` など、シェルが解釈する文字が含まれ得るため、**必ずシングルクォートで囲む**（値に `'` が含まれる場合は `'\''` に置換する）。
+
+まず、追跡参照を最新化する（**単独で実行**し、失敗した場合は後続のコマンドを実行せず、エラー内容を報告して終了する）:
+
+```bash
+git fetch --no-tags --quiet origin '+refs/heads/<head>:refs/remotes/origin/<head>' '+refs/heads/<base>:refs/remotes/origin/<base>'
+```
+
+fetch が成功した場合のみ、続けて以下を実行する:
 
 ```bash
 echo "=== EXISTING_PR ==="
-gh pr list --head <head> --base <base> --state all --json number,title,state,url
+gh pr list --head '<head>' --base '<base>' --state all --json number,title,state,url
+echo "=== COMMIT_COUNT ==="
+git rev-list --count 'origin/<base>..origin/<head>'
 echo "=== COMMITS ==="
-git fetch --no-tags --quiet origin <head> <base> && git log origin/<base>..origin/<head> --pretty=tformat:"### %h %s%n%b" --reverse
+git log 'origin/<base>..origin/<head>' --pretty=tformat:"### %h %s%n%b" --reverse
 echo "=== FILES ==="
-git diff origin/<base>...origin/<head> --name-status
+git diff 'origin/<base>...origin/<head>' --name-status
 echo "=== STAT ==="
-git diff origin/<base>...origin/<head> --shortstat
+git diff 'origin/<base>...origin/<head>' --shortstat
 ```
+
+- `git fetch` は refspec（`+refs/heads/<branch>:refs/remotes/origin/<branch>`）で追跡参照を明示的に更新する（`FETCH_HEAD` のみが更新されて古い `origin/<branch>` を参照するのを防ぐ）
 
 - `git diff` は三点（`...`）で、base との共通祖先から head までの変更のみを対象にする（PR の差分と一致させる）
 
 **`gh` が認証エラーを返した場合**: 「`gh auth login` で認証してください」と通知して終了
 
 **読み取りルール**:
-- **コミット数** = `COMMITS` 区画の `### ` で始まる行数
+- **コミット数** = `COMMIT_COUNT` 区画の数値（`COMMITS` 区画の本文に `###` で始まる行が含まれる場合があるため、行数では数えない）
 - **変更ファイル数 / 追加・削除行数** = `STAT` 区画の `N files changed, N insertions(+), N deletions(-)`
 - **変更ファイル一覧と新規/更新/削除** = `FILES` 区画の `A` / `M` / `D`
 - **既存 PR** = `EXISTING_PR` 区画のうち `state` が `OPEN` または `DRAFT` のもの（`MERGED` や `CLOSED` は除外）
@@ -91,7 +104,7 @@ head は既にリモートにあるため、新しいコミットは既存 PR �
     - "キャンセル"
 
 **選択に応じた処理**:
-- **再生成**: ステップ4に進み、生成後に `gh pr edit <PR番号> --title "..." --body "..."` で更新。`EXISTING_PR` の `url` を表示
+- **再生成**: ステップ4に進み、生成後にステップ5の `gh pr edit`（シングルクォートのタイトルと `--body-file -` のヒアドキュメント）で更新。`EXISTING_PR` の `url` を表示
 - **新規作成**: ステップ4に進み、新規 PR 作成フローを実行
 - **ブラウザ**: `gh pr view <PR番号> --web` を実行して終了
 - **キャンセル**: 「処理をキャンセルしました」と報告して終了
@@ -136,21 +149,30 @@ head は既にリモートにあるため、新しいコミットは既存 PR �
 
 ### ステップ5: PR の作成/更新
 
+**シェル展開の防止**（コミットメッセージ由来の内容がコマンドとして実行されないようにする）:
+- ブランチ名・タイトルは**シングルクォート**で囲む（`'` は `'\''` に置換）
+- 本文は引数に埋め込まず、**クォート付きヒアドキュメント**（`<<'<区切り文字>'`）で標準入力から渡す
+- `<区切り文字>` は本文の生成後に決め、本文中に単独行として現れないことを確認する（基本は `PR_BODY_EOF`、現れる場合は別の文字列に変える）。開始行と終了行で同じ文字列を使う
+
 1. **新規 PR 作成**:
    ```bash
    gh pr create \
-              --head <head> \
-              --base <base> \
-              --title "<生成されたタイトル>" \
-              --body "<生成された本文>" \
-              --draft
+              --head '<head>' \
+              --base '<base>' \
+              --title '<生成されたタイトル>' \
+              --body-file - \
+              --draft <<'<区切り文字>'
+   <生成された本文>
+   <区切り文字>
    ```
 
 2. **既存 PR の更新**（ステップ3で「再生成」を選択した場合）:
    ```bash
    gh pr edit <PR番号> \
-              --title "<生成されたタイトル>" \
-              --body "<生成された本文>"
+              --title '<生成されたタイトル>' \
+              --body-file - <<'<区切り文字>'
+   <生成された本文>
+   <区切り文字>
    ```
 
 3. **成功時の確認**:
@@ -163,7 +185,7 @@ head は既にリモートにあるため、新しいコミットは既存 PR �
 ## 重要な制約
 
 - **全てのレスポンスを日本語で行う**
-- **ローカルの状態（現在のブランチ、未 push のコミット、作業ツリー）は一切使用しない**
+- **ローカルの状態（未 push のコミット、作業ツリー）は PR 内容の生成に一切使用しない**（現在のブランチは head / base の推奨を決めるためにのみ使用してよい）
 - **`git push` は実行しない**（リモートブランチ間の PR のため不要）
 - **PR 候補は1つのみ自動生成**（選択肢なし）
 - **デフォルトで Draft PR を作成**
@@ -171,7 +193,7 @@ head は既にリモートにあるため、新しいコミットは既存 PR �
 
 ### 🚨 PR 内容生成の厳格なルール
 
-✅ **使用してよい情報源**: ステップ3で取得した `COMMITS` / `FILES` / `STAT` 区画の出力のみ
+✅ **使用してよい情報源**: ステップ3で取得した `COMMIT_COUNT` / `COMMITS` / `FILES` / `STAT` 区画の出力のみ
 
 ❌ **使用禁止の情報源**: Context セクションの情報（ブランチ一覧を除く）、あなたの記憶や推測、ステップ3で取得していない情報
 
