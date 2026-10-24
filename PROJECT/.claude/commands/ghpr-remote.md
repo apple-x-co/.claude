@@ -82,7 +82,7 @@ git diff 'origin/<base>...origin/<head>' --shortstat
 **`gh` が認証エラーを返した場合**: 「`gh auth login` で認証してください」と通知して終了
 
 **読み取りルール**:
-- **コミット数** = `COMMIT_COUNT` 区画の数値（`COMMITS` 区画の本文に `### ` で始まる行が含まれる場合があるため、行数では数えない）
+- **コミット数** = `COMMIT_COUNT` 区画の数値（`COMMITS` 区画の本文に `###` で始まる行が含まれる場合があるため、行数では数えない）
 - **変更ファイル数 / 追加・削除行数** = `STAT` 区画の `N files changed, N insertions(+), N deletions(-)`
 - **変更ファイル一覧と新規/更新/削除** = `FILES` 区画の `A` / `M` / `D`
 - **既存 PR** = `EXISTING_PR` 区画のうち `state` が `OPEN` または `DRAFT` のもの（`MERGED` や `CLOSED` は除外）
