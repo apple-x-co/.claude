@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh:*), Bash(git log:*), Bash(git branch:*), Bash(git diff:*), Bash(git fetch:*), Bash(echo:*), AskUserQuestion
+allowed-tools: Bash(gh:*), Bash(git log:*), Bash(git rev-list:*), Bash(git branch:*), Bash(git diff:*), Bash(git fetch:*), Bash(echo:*), AskUserQuestion
 description: Create a GitHub Pull Request between two remote branches with detailed descriptions (3 candidates, impact table)
 model: haiku
 ---
@@ -20,7 +20,7 @@ GitHub のリモートブランチ同士（head → base）の Pull Request を�
 ### ステップ1: ブランチ候補の整理
 
 Context の `Remote branches`（`git branch -r` の出力）を処理対象とする（再取得しない）:
-- `origin/` で始まるブランチのみを対象にし、他のリモートのブランチは除外（以降のコマンドは `origin` 固定のため）
+- 各行の先頭の空白を除いたうえで、`origin/` で始まるブランチのみを対象にし、他のリモートのブランチは除外（以降のコマンドは `origin` 固定のため）
 - `origin/` プレフィックスを削除
 - `origin/HEAD -> origin/main` のようなシンボリック参照の行（` -> ` を含む行）のみを除外
 - 重複を削除・ソート
@@ -66,6 +66,8 @@ fetch が成功した場合のみ、続けて以下を実行する:
 ```bash
 echo "=== EXISTING_PR ==="
 gh pr list --head '<head>' --base '<base>' --state all --json number,title,state,url
+echo "=== COMMIT_COUNT ==="
+git rev-list --count 'origin/<base>..origin/<head>'
 echo "=== COMMITS ==="
 git log 'origin/<base>..origin/<head>' --pretty=tformat:"### %h %s%n%b" --reverse
 echo "=== FILES ==="
@@ -84,7 +86,7 @@ git diff 'origin/<base>...origin/<head>' --shortstat
 
 **読み取りルール**:
 - **既存 PR** = `EXISTING_PR` 区画のうち `state` が `OPEN` または `DRAFT` のもの（`MERGED` や `CLOSED` は除外）
-- **コミット数** = `COMMITS` 区画の `### ` で始まる行数
+- **コミット数** = `COMMIT_COUNT` 区画の数値（`COMMITS` 区画の本文に `### ` で始まる行が含まれる場合があるため、行数では数えない）
 - **変更ファイル一覧と新規/更新/削除** = `FILES` 区画の `A` / `M` / `D`
 - **ファイルごとの追加・削除行数** = `NUMSTAT` 区画
 - **変更ファイル数 / 追加・削除行数（合計）** = `STAT` 区画の `N files changed, N insertions(+), N deletions(-)`
@@ -276,7 +278,7 @@ head は既にリモートにあるため、新しいコミットは既存 PR �
 
 ### 🚨 PR 内容生成の厳格なルール 🚨
 
-✅ **使用してよい情報源**: ステップ3で取得した `COMMITS` / `FILES` / `NUMSTAT` / `STAT` 区画の出力のみ
+✅ **使用してよい情報源**: ステップ3で取得した `COMMIT_COUNT` / `COMMITS` / `FILES` / `NUMSTAT` / `STAT` 区画の出力のみ
 
 ❌ **使用禁止の情報源**: Context セクションの情報（ブランチ一覧を除く）、直近のコミット、`git status`、あなたの記憶や推測、ステップ3で取得していない情報
 
