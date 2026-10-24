@@ -22,7 +22,7 @@ GitHub のリモートブランチ同士（head → base）の Pull Request を�
 Context の `Remote branches`（`git branch -r` の出力）を処理対象とする（再取得しない）:
 - `origin/` で始まるブランチのみを対象にし、他のリモートのブランチは除外（以降のコマンドは `origin` 固定のため）
 - `origin/` プレフィックスを削除
-- `HEAD` を含む行（`origin/HEAD -> origin/main` など）を除外
+- `origin/HEAD -> origin/main` のようなシンボリック参照の行（` -> ` を含む行）のみを除外
 - 重複を削除・ソート
 
 候補が2件未満の場合は「PR を作成できるリモートブランチが足りません」と通知して終了。
