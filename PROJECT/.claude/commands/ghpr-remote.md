@@ -2,12 +2,14 @@
 allowed-tools: Bash(gh:*), Bash(git log:*), Bash(git rev-list:*), Bash(git branch:*), Bash(git diff:*), Bash(git fetch:*), Bash(echo:*), AskUserQuestion
 description: Create a GitHub Pull Request between two remote branches (default: current branch → develop, develop → main)
 model: haiku
+argument-hint: [release]
 ---
 
-> version: 1.0.0
+> version: 1.1.0
 
 ## Context
 
+- Arguments: $ARGUMENTS
 - Current branch: !`git branch --show-current`
 - Remote branches: !`git branch -r`
 
@@ -30,6 +32,12 @@ Context の `Remote branches`（`git branch -r` の出力）を処理対象と�
 ### ステップ2: head / base の選択
 
 **推奨ブランチの決定**（質問の前に決める）:
+
+`Arguments` に `release` が含まれ、かつステップ1の候補に `develop` と `main`（なければ `master`）がある場合（リリース PR）:
+- **推奨 head**: `develop`
+- **推奨 base**: `main`（なければ `master`）
+
+それ以外の場合:
 - **推奨 head**: `Current branch` がステップ1の候補に含まれ、かつ `develop` / `main` / `master` 以外ならそのブランチ。それ以外は `develop`（なければ `main` / `master`）
 - **推奨 base**: 推奨 head が `develop` なら `main`（なければ `master`）。それ以外は `develop`（なければ `main` / `master`）
 
