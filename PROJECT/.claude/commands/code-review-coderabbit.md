@@ -2,10 +2,10 @@
 name: code-review-coderabbit
 description: CodeRabbit CLI を使用してAI駆動の包括的なコードレビューを実施。バグ、セキュリティ脆弱性、パフォーマンス問題を検出
 allowed-tools: Bash(coderabbit:*)
-argument-hint: [--plain|--prompt-only] [--type uncommitted|committed] [--base branch]
+argument-hint: [--plain|--prompt-only] [--type all|committed|uncommitted] [--base branch|--base-commit commit]
 ---
 
-> version: 1.0.0
+> version: 1.1.0
 
 # CodeRabbit CLI - AI Code Review
 
@@ -23,7 +23,7 @@ coderabbit $ARGUMENTS
 coderabbit --prompt-only
 ```
 
-⚠️ **重要**: CodeRabbit のレビューは**7-30分以上**かかる場合があります。コマンドを実行したら、完了するまで待機してください。
+⚠️ **重要**: CodeRabbit のレビューは**7-30分以上**かかる場合があります。Bash ツールのタイムアウト（最大10分）で中断されないよう、`run_in_background: true` で実行し、完了通知を待ってから結果を読み取ってください。
 
 ## レビュー結果の処理
 
@@ -36,19 +36,22 @@ coderabbit --prompt-only
 
 ```bash
 # 詳細なフィードバック（人間が読みやすい）
-/coderabbit --plain
+/code-review-coderabbit --plain
 
 # AIエージェント向けの最小出力（トークン効率的）
-/coderabbit --prompt-only
+/code-review-coderabbit --prompt-only
 
 # コミットされていない変更のみをレビュー
-/coderabbit --plain --type uncommitted
+/code-review-coderabbit --plain --type uncommitted
 
 # 特定のベースブランチと比較
-/coderabbit --plain --base develop
+/code-review-coderabbit --plain --base develop
+
+# 現在のブランチ上の特定のコミットと比較
+/code-review-coderabbit --plain --base-commit abc1234
 
 # 引数なし（デフォルトで --prompt-only を使用）
-/coderabbit
+/code-review-coderabbit
 ```
 
 ## CodeRabbit が検出する問題
@@ -67,10 +70,10 @@ CodeRabbit CLI は以下を自動的に検出します:
 CodeRabbit を使用した推奨ワークフロー:
 
 1. コードを書く/変更する
-2. `/coderabbit --prompt-only` を実行
+2. `/code-review-coderabbit --prompt-only` を実行
 3. 指摘された問題を分析
 4. Critical および Warning レベルの問題を修正
-5. 再度 `/coderabbit --prompt-only` を実行
+5. 再度 `/code-review-coderabbit --prompt-only` を実行
 6. 「Review completed ✔」と表示され、重要な問題がなくなるまで繰り返す
 
 ## CodeRabbit CLI のインストール
