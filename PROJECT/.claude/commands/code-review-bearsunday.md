@@ -1,6 +1,6 @@
 ---
 name: code-review-bearsunday
-allowed-tools: Bash(git diff:*), Bash(git status:*), Bash(git branch:*)
+allowed-tools: Bash(git diff:*), Bash(git status:*), Bash(git branch:*), Read
 description: Review your changes
 ---
 
@@ -10,11 +10,14 @@ description: Review your changes
 
 - Changed files: !`git diff --name-only HEAD`
 - Full diff: !`git diff HEAD`
+- Status: !`git status --short --untracked-files=all`
 - Current branch: !`git branch --show-current`
 
 ## Your task
 
 変更されたコードを以下の観点から包括的にレビューし、日本語でフィードバックを提供します。
+
+`Status` で `??` が付いたファイル（未追跡の新規ファイル）は `Changed files` と `Full diff` に含まれないため、Read ツールで内容を読み、ファイル全体を新規追加としてレビュー対象に含めてください。
 
 ### レビュー観点
 

@@ -16,12 +16,21 @@ argument-hint: [--uncommitted|--base <branch>|--commit <sha> [--title <title>]|<
 以下のコマンドを実行してください:
 
 ```bash
-# 引数が指定されている場合
+# 引数がフラグ（--uncommitted / --base / --commit / --title）の場合
 codex review $ARGUMENTS
+
+# 引数が自由記述の指示の場合
+codex review - <<'REVIEW_EOF'
+<指示文>
+REVIEW_EOF
 
 # 引数が指定されていない場合（デフォルト）
 codex review --uncommitted
 ```
+
+**シェル展開の防止**（引数がコマンドとして実行されないようにする）:
+- フラグの値（ブランチ名・SHA・タイトル）は**シングルクォート**で囲む（`'` は `'\''` に置換）
+- 自由記述の指示は引数に埋め込まず、**クォート付きヒアドキュメント**で標準入力（`-`）から渡す。指示文の中に `REVIEW_EOF` だけの行がある場合は、区切り文字を別の文字列に変える
 
 ⚠️ **重要**: Codex のレビューは**数分〜10分以上**かかる場合があります。Bash ツールのタイムアウト（最大10分）で中断されないよう、`run_in_background: true` で実行し、完了通知を待ってから結果を読み取ってください。
 
