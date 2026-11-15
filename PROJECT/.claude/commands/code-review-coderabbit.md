@@ -1,5 +1,5 @@
 ---
-name: coderabbit
+name: code-review-coderabbit
 description: CodeRabbit CLI を使用してAI駆動の包括的なコードレビューを実施。バグ、セキュリティ脆弱性、パフォーマンス問題を検出
 allowed-tools: Bash(coderabbit:*)
 argument-hint: [--plain|--prompt-only] [--type uncommitted|committed] [--base branch]
