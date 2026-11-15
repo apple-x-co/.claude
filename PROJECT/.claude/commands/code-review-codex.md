@@ -17,7 +17,7 @@ argument-hint: [--uncommitted|--base <branch>|--commit <sha> [--title <title>]|<
 
 ```bash
 # 引数がフラグ（--uncommitted / --base / --commit / --title）の場合
-codex review $ARGUMENTS
+codex review <引数から組み立てたフラグ>
 
 # 引数が自由記述の指示の場合
 codex review - <<'REVIEW_EOF'
@@ -29,6 +29,7 @@ codex review --uncommitted
 ```
 
 **シェル展開の防止**（引数がコマンドとして実行されないようにする）:
+- `$ARGUMENTS` をそのままコマンドに埋め込まない。`--uncommitted` / `--base` / `--commit` / `--title` だけを取り出してフラグを組み立てる
 - フラグの値（ブランチ名・SHA・タイトル）は**シングルクォート**で囲む（`'` は `'\''` に置換）
 - 自由記述の指示は引数に埋め込まず、**クォート付きヒアドキュメント**で標準入力（`-`）から渡す。指示文の中に `REVIEW_EOF` だけの行がある場合は、区切り文字を別の文字列に変える
 
@@ -110,7 +111,7 @@ Codex を使用した推奨ワークフロー:
 3. 指摘された問題を分析
 4. P0 および P1 の問題を修正
 5. 再度 `/code-review-codex` を実行
-6. `patch is correct` と判定され、P0・P1 の指摘がなくなるまで繰り返す
+6. P0・P1 の指摘がなくなるまで繰り返す
 
 ## Tips
 
